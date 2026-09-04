@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AutoScale MVP</title>
+<style>
+:root{--bg:#0b0f14;--card:#141a22;--line:#28313c;--text:#f4f7fb;--muted:#9aa6b5;--accent:#4f8cff}
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;background:linear-gradient(180deg,#0b0f14,#101720);color:var(--text)}
+header{padding:28px 20px 50px;border-bottom:1px solid var(--line);background:radial-gradient(circle at top right,#17345c 0,transparent 38%)}.wrap{max-width:1100px;margin:auto}h1{margin:0 0 8px;font-size:38px}.lead,.meta,.result{color:var(--muted)}
+main{max-width:1100px;margin:-25px auto 0;padding:0 16px 50px}.panel{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px}
+.controls{display:grid;grid-template-columns:1fr 1fr auto;gap:12px}select,button{min-height:52px;border-radius:12px;border:1px solid var(--line);font-size:16px;padding:0 14px}select{background:#0d131a;color:#fff}button{background:var(--accent);color:#fff;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.car{background:#10161e;border:1px solid var(--line);border-radius:16px;padding:18px}.car h2{margin:10px 0 6px;font-size:22px}
+table{width:100%;border-collapse:collapse}td{padding:11px 0;border-bottom:1px solid #202934}td:last-child{text-align:right;font-weight:700}
+.visual{display:grid;gap:18px}.barrow{display:grid;grid-template-columns:150px 1fr 100px;gap:12px;align-items:center}.track{height:24px;background:#0d131a;border-radius:99px;overflow:hidden}.bar{height:100%;border-radius:99px;background:linear-gradient(90deg,#4f8cff,#72d6ff)}
+.badge{display:inline-block;padding:6px 10px;border-radius:99px;background:#17253a;color:#9ec4ff;font-size:13px}footer{color:#6f7b89;text-align:center;padding:25px}
+@media(max-width:700px){h1{font-size:30px}.controls,.grid{grid-template-columns:1fr}.barrow{grid-template-columns:95px 1fr 75px;font-size:13px}main{padding:0 10px 30px}header{padding:22px 16px 45px}}
+</style></head><body>
+<header><div class="wrap"><h1>AutoScale MVP</h1><div class="lead">Наглядное сравнение габаритов автомобилей</div></div></header>
+<main><section class="panel"><div class="controls"><select id="car1"></select><select id="car2"></select><button onclick="compareCars()">Сравнить</button></div></section>
+<p id="result" class="result panel"></p><section class="grid"><div class="car" id="card1"></div><div class="car" id="card2"></div></section>
+<section class="panel"><h2>Наглядная разница габаритов</h2><div id="visual" class="visual"></div></section></main><footer>AutoScale MVP</footer>
+<script>
+const cars=[
+{id:'vezel',name:'Honda Vezel RU1',year:'2013–2021',length:4295,width:1770,height:1605,wheelbase:2610},
+{id:'troc',name:'Volkswagen T-Roc',year:'2017–н.в.',length:4236,width:1819,height:1584,wheelbase:2590},
+{id:'tcross',name:'Volkswagen T-Cross',year:'2018–н.в.',length:4108,width:1760,height:1584,wheelbase:2551}];
+const labels={length:'Длина',width:'Ширина',height:'Высота',wheelbase:'Колёсная база'};
+function options(id,selected){document.getElementById(id).innerHTML=cars.map(c=>`<option value="${c.id}" ${c.id===selected?'selected':''}>${c.name}</option>`).join('')}
+options('car1','vezel');options('car2','troc');
+function getCar(id){return cars.find(c=>c.id===id)}
+function card(c){return `<span class="badge">${c.year}</span><h2>${c.name}</h2><div class="meta">Основные размеры кузова</div><table>${Object.entries(labels).map(([k,l])=>`<tr><td>${l}</td><td>${c[k]} мм</td></tr>`).join('')}</table>`}
+function compareCars(){const a=getCar(car1.value),b=getCar(car2.value);if(a.id===b.id){result.textContent='Выберите два разных автомобиля.';return}card1.innerHTML=card(a);card2.innerHTML=card(b);result.textContent=`${a.name} и ${b.name}: сравнение заводских габаритов.`;visual.innerHTML=Object.entries(labels).map(([k,l])=>{const max=Math.max(a[k],b[k]),wa=(a[k]/max*100).toFixed(1),wb=(b[k]/max*100).toFixed(1),diff=Math.abs(a[k]-b[k]);return `<div><strong>${l}</strong><div class="barrow"><span>${a.name}</span><div class="track"><div class="bar" style="width:${wa}%"></div></div><b>${a[k]} мм</b></div><div class="barrow"><span>${b.name}</span><div class="track"><div class="bar" style="width:${wb}%"></div></div><b>${b[k]} мм</b></div><div class="meta">Разница: ${diff} мм</div></div>`}).join('')}
+compareCars();
+</script></body></html>

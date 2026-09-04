@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoScale v2.3 — сравнение автомобилей</title>
+<style>
+:root{
+ --bg:#07111d;--panel:#111d2b;--panel2:#0b1622;--line:#2b425c;--text:#e8eef7;--muted:#aab9cb;
+ --blue:#79adff;--blueD:#426fa8;--orange:#ffad7e;--orangeD:#b65d39;--green:#75d69c;
+ --shadow:0 16px 45px rgba(0,0,0,.25)
+}
+*{box-sizing:border-box} html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 50% -250px,#1a2e49 0,#07111d 48%);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+.wrap{max-width:1120px;margin:auto;padding:28px 18px 60px}
+header{padding:8px 0 24px;border-bottom:1px solid var(--line);margin-bottom:22px}
+.logo{font-size:42px;font-weight:850;letter-spacing:-2px}.logo span{color:var(--blue)}
+.tagline{color:var(--muted);font-size:18px;margin-top:5px}
+.panel{background:linear-gradient(145deg,#142131,#0d1825);border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:var(--shadow);margin:18px 0}
+h1,h2,h3,p{margin-top:0}h1{font-size:34px;margin-bottom:8px}h2{font-size:28px;margin-bottom:8px}
+.lead{color:var(--muted);font-size:18px;line-height:1.55}
+.controlTop{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.random{border:1px solid #365a83;background:#112841;color:#c6ddff;padding:10px 15px;border-radius:14px;font-size:14px;cursor:pointer;white-space:nowrap}
+.controls{display:grid;grid-template-columns:1fr 64px 1fr;gap:14px;align-items:end;margin-top:20px}.picker{background:#0c1826;border:1px solid #29435d;border-radius:20px;padding:16px}.picker-title{font-weight:800;font-size:16px;margin:0 0 12px;color:#dbe7f5}.picker-grid{display:grid;grid-template-columns:1fr;gap:10px}.picker-grid .field label{font-size:12px}.picker-grid select{height:48px;font-size:15px}.picker-note{font-size:12px;color:var(--muted);margin:9px 2px 0;line-height:1.4}
+.field label{display:block;color:var(--muted);font-size:14px;margin:0 0 7px 3px}
+select,input{width:100%;height:52px;border-radius:16px;border:1px solid #314963;background:#091523;color:var(--text);font-size:17px;padding:0 15px;outline:none}
+select:focus,input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(114,168,255,.12)}
+.swap{height:52px;border-radius:16px;border:1px solid #4f83c8;background:#17304e;color:#b8d7ff;font-size:25px;cursor:pointer;transition:.25s}.swap:hover{transform:rotate(180deg)}
+.quick{margin-top:12px;position:relative}.quick input{padding-left:45px;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.searchIcon{position:absolute;left:16px;top:14px;color:var(--muted);font-size:19px;z-index:1}
+.results{display:none;position:absolute;z-index:20;top:58px;left:0;right:0;background:#0d1927;border:1px solid #35506d;border-radius:14px;padding:6px;max-height:260px;overflow:auto;box-shadow:var(--shadow)}
+.results.show{display:block}.result{padding:11px 12px;border-radius:10px;cursor:pointer}.result:hover{background:#1a2b3f}.result small{color:var(--muted)}
+.recent{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.recent span{color:var(--muted);font-size:13px;align-self:center}.chip{border:1px solid #304965;background:#101d2c;color:#c4d5e9;border-radius:999px;padding:7px 11px;font-size:12px;cursor:pointer}
+.visualHead{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}.badge{background:#18304c;color:#bdd7fa;padding:12px 17px;border-radius:999px;font-size:15px;line-height:1.35;text-align:center;flex:0 0 auto}
+.visual{background:#091522;border:1px solid #29425c;border-radius:22px;padding:18px;margin-top:18px}
+.car-row{padding:14px 0 10px}.car-row+.car-row{border-top:2px dashed #3d5369;margin-top:4px}
+.car-title{display:flex;justify-content:space-between;gap:14px;align-items:baseline;font-weight:700;font-size:22px}.car-title span{color:var(--muted);font-size:15px;font-weight:500;text-align:right}
+.car-stage{height:190px;position:relative;overflow:hidden;margin-top:4px}.ground{position:absolute;bottom:20px;left:0;right:0;border-bottom:3px solid #61758b}
+.scaleMarks{position:absolute;bottom:14px;left:0;right:0;height:8px;background:repeating-linear-gradient(90deg,transparent 0 8px,#53687d 8px 11px)}
+.car{position:absolute;bottom:21px;left:50%;transform:translateX(-50%);height:132px;max-width:96%;min-width:155px}
+.body{position:absolute;bottom:16px;left:0;width:100%;height:50%;border:4px solid var(--c1);background:linear-gradient(180deg,var(--c1),var(--c2));box-shadow:inset 0 10px 18px rgba(255,255,255,.11)}
+.cabin{position:absolute;bottom:52%;background:#34495e;border:4px solid var(--c1);border-bottom:0}
+.wheel{position:absolute;bottom:0;width:48px;height:48px;border-radius:50%;background:#101d2a;border:9px solid #293949;box-shadow:inset 0 0 0 6px #b9c8d8;z-index:3}.wheel:after{content:"";position:absolute;inset:10px;border-radius:50%;background:#111c29}.wheel.left{left:16%}.wheel.right{right:16%}
+/* SUV */
+.car.suv .body{height:56%;border-radius:30px 38px 23px 23px}.car.suv .cabin{left:25%;width:49%;height:39%;border-radius:34px 34px 5px 5px}
+/* wagon */
+.car.wagon .body{height:48%;border-radius:23px 26px 16px 16px}.car.wagon .cabin{left:18%;width:64%;height:31%;border-radius:32px 45px 4px 4px;transform:skewX(-8deg)}
+/* hatch */
+.car.hatch .body{height:51%;border-radius:28px 35px 18px 20px}.car.hatch .cabin{left:30%;width:43%;height:35%;border-radius:42px 24px 5px 5px}
+/* sedan */
+.car.sedan .body{height:45%;border-radius:18px 26px 16px 16px}.car.sedan .cabin{left:31%;width:40%;height:32%;border-radius:25px 25px 4px 4px}
+/* coupe */
+.car.coupe .body{height:42%;border-radius:20px 28px 15px 15px}.car.coupe .cabin{left:34%;width:35%;height:29%;border-radius:35px 20px 4px 4px;transform:skewX(-8deg)}
+.scaleNote{color:var(--muted);font-size:13px;margin:14px 2px 0}
+.diff-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.diff{background:linear-gradient(145deg,#152333,#0d1724);border:1px solid var(--line);border-radius:20px;padding:17px;min-height:126px}.diff .name{color:var(--muted);font-size:14px}.diff .num{font-size:27px;font-weight:800;margin:7px 0}.diff .who{color:var(--muted);font-size:12px;line-height:1.35}.diff .pct{color:#8db9ff;font-size:12px;margin-top:7px}
+.bars{display:grid;gap:12px;margin-top:16px}.barrow{display:grid;grid-template-columns:150px 1fr 58px;gap:12px;align-items:center;font-size:13px}.barname{color:var(--muted)}.bartrack{height:12px;border-radius:999px;background:#0a1420;overflow:hidden;border:1px solid #24394e}.barfill{height:100%;border-radius:999px}.barvalue{text-align:right;color:#c8d7e9;font-variant-numeric:tabular-nums}
+.tableWrap{overflow:auto;border-radius:20px;border:1px solid var(--line)}table{width:100%;border-collapse:collapse;min-width:680px;background:#0b1622}th,td{padding:14px 16px;border-bottom:1px solid #26394c;text-align:left}th{color:var(--muted);font-size:13px;background:#101d2b;position:sticky;top:0}td:first-child{color:#b9c5d4;width:28%}.winner{color:#8ce0ae!important;font-weight:800}.loser{color:#d8e0e9}.equal{color:var(--muted)}
+.selected-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}.car-info{background:#091823;border:1px solid #29475a;border-radius:16px;padding:18px}.car-info h3{margin-bottom:10px}.car-info p{color:var(--muted);font-size:14px;line-height:1.65;margin:0}
+.share{display:flex;gap:10px;align-items:center;margin-top:15px;flex-wrap:wrap}.share button{height:46px;border:1px solid #386aa0;background:#183452;color:#d7e9ff;border-radius:14px;padding:0 17px;font-size:14px;cursor:pointer}.status{color:var(--green);font-size:14px;min-height:18px}
+footer{text-align:center;color:#7f90a4;padding:28px 0 0;font-size:14px}
+@media(max-width:760px){
+ .wrap{padding:16px 9px 42px}.logo{font-size:29px}.tagline{font-size:14px}.panel{padding:18px 12px;border-radius:22px;margin:16px 0}h1{font-size:23px}h2{font-size:21px}.lead{font-size:15px}
+ .controlTop{align-items:flex-start}.random{padding:8px 11px;font-size:12px}.controls{grid-template-columns:1fr;gap:10px}.swap{height:48px;order:2}.picker:first-child{order:1}.picker:last-child{order:3}.picker{padding:12px;border-radius:18px}.picker-title{font-size:15px;margin-bottom:10px}.picker-grid{gap:8px}
+ select,input{height:48px;font-size:15px}.quick input{font-size:14px}.searchIcon{top:13px}.recent{margin-top:10px}
+ .visualHead{gap:12px}.badge{font-size:12px;padding:10px 12px;max-width:130px}.visual{padding:10px;border-radius:18px}.car-title{font-size:15px}.car-title span{font-size:11px;max-width:47%}
+ .car-stage{height:150px}.car{height:100px;min-width:130px}.body,.cabin{border-width:3px}.wheel{width:37px;height:37px;border-width:7px}.wheel:after{inset:8px}
+ .diff-grid{grid-template-columns:1fr 1fr;gap:9px}.diff{padding:13px;min-height:110px}.diff .num{font-size:21px}.barrow{grid-template-columns:105px 1fr 45px;font-size:11px;gap:7px}
+ .selected-grid{grid-template-columns:1fr}.share button{flex:1}.tableWrap{border-radius:15px}
+}
+
+.stepper{display:flex;align-items:center;gap:8px;margin:2px 0 14px}
+.step{display:flex;align-items:center;gap:7px;color:#7890a9;font-size:12px;font-weight:700}
+.step i{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font-style:normal;background:#16263a;border:1px solid #35506d;color:#a9c7ea}
+.step.active{color:#dceaff}.step.active i{background:#294b72;border-color:#6fa8ff;color:white}
+.step.done{color:#9bc6ff}.step.done i{background:#1f3d5c;border-color:#5b95d8}
+.step-line{height:1px;flex:1;background:#2b425c}
+.field select:disabled{opacity:.45;cursor:not-allowed;background:#0a131d}
+.selection-summary{margin-top:12px;padding:11px 12px;border:1px solid #263f58;border-radius:14px;background:#0a1520;color:#9eb0c4;font-size:12px;line-height:1.5}
+.selection-summary b{color:#dce8f6}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+ <div class="logo">Auto<span>Scale</span></div>
+ <div class="tagline">Сравнение реальных габаритов автомобилей в одном масштабе</div>
+</header>
+
+<section class="panel">
+ <div class="controlTop"><div><h1>Сравнить автомобили</h1><p class="lead">Выберите две модели и получите визуальное сравнение, разницу размеров и полную таблицу характеристик.</p></div><button class="random" id="random">🎲 Случайное сравнение</button></div>
+ <div class="controls">
+  <div class="picker">
+   <div class="picker-title">Первый автомобиль</div>
+   <div class="stepper"><div class="step active"><i>1</i>Марка</div><div class="step-line"></div><div class="step"><i>2</i>Модель</div><div class="step-line"></div><div class="step"><i>3</i>Версия</div></div>
+   <div class="picker-grid">
+    <div class="field"><label>Шаг 1 — выберите марку</label><select id="brand1"></select></div>
+    <div class="field"><label>Шаг 2 — выберите модель</label><select id="model1"></select></div>
+    <div class="field"><label>Шаг 3 — выберите поколение / комплектацию</label><select id="trim1"></select></div>
+   </div>
+   <div class="selection-summary" id="summary1">Марка → модель → конкретную версию.</div>
+  </div>
+  <button class="swap" id="swap" title="Поменять автомобили местами">⇄</button>
+  <div class="picker">
+   <div class="picker-title">Второй автомобиль</div>
+   <div class="stepper"><div class="step active"><i>1</i>Марка</div><div class="step-line"></div><div class="step"><i>2</i>Модель</div><div class="step-line"></div><div class="step"><i>3</i>Версия</div></div>
+   <div class="picker-grid">
+    <div class="field"><label>Шаг 1 — выберите марку</label><select id="brand2"></select></div>
+    <div class="field"><label>Шаг 2 — выберите модель</label><select id="model2"></select></div>
+    <div class="field"><label>Шаг 3 — выберите поколение / комплектацию</label><select id="trim2"></select></div>
+   </div>
+   <div class="selection-summary" id="summary2">Марка → модель → конкретную версию.</div>
+  </div>
+ </div>
+ <div class="quick"><span class="searchIcon">⌕</span><input id="search" placeholder="Быстрый поиск: марка, модель или комплектация"><div id="results" class="results"></div></div>
+ <div class="recent" id="recent"></div>
+</section>
+
+<section class="panel">
+ <div class="visualHead"><div><h2>Вид сбоку — одинаковый масштаб</h2><p class="lead">Длина автомобилей масштабируется относительно самой длинной выбранной модели. Для кузовов используются разные силуэты.</p></div><div class="badge">реальная<br>длина</div></div>
+ <div class="visual" id="visual"></div>
+ <div class="scaleNote">Ширина силуэта отражает реальную длину автомобиля, а форма кузова зависит от типа модели.</div>
+</section>
+
+<section><h2 style="margin:30px 0 14px">Разница габаритов</h2><div class="diff-grid" id="diffs"></div></section>
+<section class="panel"><h2>Наглядная разница</h2><div class="bars" id="bars"></div></section>
+<section class="panel"><h2>Полное сравнение характеристик</h2><div class="tableWrap"><table id="specTable"></table></div></section>
+<section class="panel"><h2>О выбранных автомобилях</h2><div class="selected-grid" id="selectedInfo"></div><div class="share"><button id="copyLink">⧉ Скопировать ссылку</button><button id="nativeShare">↗ Поделиться</button><div class="status" id="status"></div></div></section>
+<footer>AutoScale v2.3 · сравнение автомобилей</footer>
+</div>
+
+<script>
+const cars=[
+{id:'vezel-ru1',brand:'Honda',name:'Vezel RU1',gen:'RU1',body:'SUV / crossover',shape:'suv',length:4295,width:1770,height:1605,wheelbase:2610,clearance:185,weight:1180,trunk:431,engine:'1.5 бензин',power:'131 л.с.',drive:'Передний / AWD',fuel:'6.5 л/100 км'},
+{id:'vezel-ru3',brand:'Honda',name:'Vezel RU3 Hybrid',gen:'RU3',body:'SUV / crossover',shape:'suv',length:4330,width:1770,height:1605,wheelbase:2610,clearance:185,weight:1380,trunk:393,engine:'1.5 Hybrid',power:'132 л.с.',drive:'Передний / AWD',fuel:'4.9 л/100 км'},
+{id:'cr-v',brand:'Honda',name:'CR-V',gen:'5 поколение',body:'SUV',shape:'suv',length:4586,width:1855,height:1689,wheelbase:2660,clearance:198,weight:1550,trunk:522,engine:'1.5 Turbo',power:'190 л.с.',drive:'Передний / AWD',fuel:'8.0 л/100 км'},
+{id:'fit',brand:'Honda',name:'Fit',gen:'3 поколение',body:'Хэтчбек',shape:'hatch',length:3955,width:1695,height:1525,wheelbase:2530,clearance:135,weight:1050,trunk:354,engine:'1.3 бензин',power:'100 л.с.',drive:'Передний',fuel:'5.3 л/100 км'},
+{id:'t-roc',brand:'Volkswagen',name:'T-Roc',gen:'1 поколение',body:'SUV / crossover',shape:'suv',length:4236,width:1819,height:1584,wheelbase:2590,clearance:161,weight:1300,trunk:445,engine:'1.5 TSI',power:'150 л.с.',drive:'Передний / AWD',fuel:'6.5 л/100 км'},
+{id:'t-cross',brand:'Volkswagen',name:'T-Cross',gen:'1 поколение',body:'SUV / crossover',shape:'suv',length:4108,width:1760,height:1584,wheelbase:2551,clearance:185,weight:1245,trunk:385,engine:'1.0 TSI',power:'116 л.с.',drive:'Передний',fuel:'5.9 л/100 км'},
+{id:'tiguan',brand:'Volkswagen',name:'Tiguan',gen:'2 поколение',body:'SUV',shape:'suv',length:4509,width:1839,height:1675,wheelbase:2678,clearance:191,weight:1540,trunk:615,engine:'2.0 TSI',power:'180 л.с.',drive:'Передний / AWD',fuel:'8.1 л/100 км'},
+{id:'levorg',brand:'Subaru',name:'Levorg 1.6 GT-S',gen:'1 поколение',body:'Универсал',shape:'wagon',length:4690,width:1780,height:1490,wheelbase:2650,clearance:130,weight:1530,trunk:522,engine:'1.6 Turbo',power:'170 л.с.',drive:'AWD',fuel:'7.2 л/100 км'},
+{id:'xv',brand:'Subaru',name:'XV',gen:'GT',body:'Crossover',shape:'suv',length:4465,width:1800,height:1615,wheelbase:2665,clearance:220,weight:1410,trunk:385,engine:'2.0 бензин',power:'150 л.с.',drive:'AWD',fuel:'7.0 л/100 км'},
+{id:'forester',brand:'Subaru',name:'Forester',gen:'SK',body:'SUV',shape:'suv',length:4640,width:1815,height:1730,wheelbase:2670,clearance:220,weight:1590,trunk:509,engine:'2.5 бензин',power:'185 л.с.',drive:'AWD',fuel:'8.1 л/100 км'},
+{id:'chr',brand:'Toyota',name:'C-HR',gen:'1 поколение',body:'Crossover',shape:'suv',length:4360,width:1795,height:1565,wheelbase:2640,clearance:160,weight:1395,trunk:377,engine:'1.2 Turbo',power:'116 л.с.',drive:'Передний / AWD',fuel:'6.4 л/100 км'},
+{id:'rav4',brand:'Toyota',name:'RAV4',gen:'XA50',body:'SUV',shape:'suv',length:4600,width:1855,height:1685,wheelbase:2690,clearance:195,weight:1610,trunk:580,engine:'2.5 бензин',power:'199 л.с.',drive:'Передний / AWD',fuel:'8.0 л/100 км'},
+{id:'harrier',brand:'Toyota',name:'Harrier',gen:'80',body:'SUV',shape:'suv',length:4740,width:1855,height:1660,wheelbase:2690,clearance:190,weight:1590,trunk:409,engine:'2.0 бензин',power:'171 л.с.',drive:'Передний / AWD',fuel:'7.4 л/100 км'},
+{id:'cx3',brand:'Mazda',name:'CX-3',gen:'1 поколение',body:'Crossover',shape:'suv',length:4275,width:1765,height:1550,wheelbase:2570,clearance:160,weight:1260,trunk:350,engine:'1.5 бензин',power:'150 л.с.',drive:'Передний / AWD',fuel:'6.1 л/100 км'},
+{id:'cx5',brand:'Mazda',name:'CX-5',gen:'2 поколение',body:'SUV',shape:'suv',length:4550,width:1840,height:1680,wheelbase:2700,clearance:193,weight:1580,trunk:506,engine:'2.5 бензин',power:'194 л.с.',drive:'Передний / AWD',fuel:'7.5 л/100 км'},
+{id:'cx30',brand:'Mazda',name:'CX-30',gen:'1 поколение',body:'Crossover',shape:'suv',length:4395,width:1795,height:1540,wheelbase:2655,clearance:175,weight:1390,trunk:430,engine:'2.0 бензин',power:'150 л.с.',drive:'Передний / AWD',fuel:'6.5 л/100 км'},
+{id:'qashqai',brand:'Nissan',name:'Qashqai',gen:'J11',body:'Crossover',shape:'suv',length:4377,width:1806,height:1590,wheelbase:2646,clearance:200,weight:1375,trunk:430,engine:'2.0 бензин',power:'144 л.с.',drive:'Передний / AWD',fuel:'7.7 л/100 км'},
+{id:'xtrail',brand:'Nissan',name:'X-Trail',gen:'T32',body:'SUV',shape:'suv',length:4640,width:1820,height:1715,wheelbase:2705,clearance:210,weight:1565,trunk:497,engine:'2.5 бензин',power:'171 л.с.',drive:'Передний / AWD',fuel:'8.3 л/100 км'}
+];
+const specs=[['length','Длина','мм',1],['width','Ширина','мм',1],['height','Высота','мм',1],['wheelbase','Колёсная база','мм',1],['clearance','Клиренс','мм',1],['weight','Масса','кг',1],['trunk','Багажник','л',1],['power','Мощность','',0],['engine','Двигатель','',0],['drive','Привод','',0],['fuel','Расход','',0]];
+const $=id=>document.getElementById(id),
+brand1=$('brand1'),model1=$('model1'),trim1=$('trim1'),
+brand2=$('brand2'),model2=$('model2'),trim2=$('trim2'),
+search=$('search'),results=$('results');
+
+const fmt=v=>new Intl.NumberFormat('ru-RU').format(v), get=id=>cars.find(c=>c.id===id);
+
+function modelName(c){
+ const map={
+  'vezel-ru1':'Vezel','vezel-ru3':'Vezel','cr-v':'CR-V','fit':'Fit',
+  't-roc':'T-Roc','t-cross':'T-Cross','tiguan':'Tiguan',
+  'levorg':'Levorg','xv':'XV','forester':'Forester',
+  'chr':'C-HR','rav4':'RAV4','harrier':'Harrier',
+  'cx3':'CX-3','cx5':'CX-5','cx30':'CX-30',
+  'qashqai':'Qashqai','xtrail':'X-Trail'
+ };
+ return map[c.id]||c.name;
+}
+function trimName(c){return `${c.gen} · ${c.engine} · ${c.power}`}
+
+const pickers=[
+ {brand:brand1,model:model1,trim:trim1},
+ {brand:brand2,model:model2,trim:trim2}
+];
+
+function fillBrands(p, selectedBrand){
+ const brands=[...new Set(cars.map(c=>c.brand))];
+ p.brand.innerHTML='<option value="">Марка</option>'+brands.map(b=>`<option value="${b}">${b}</option>`).join('');
+ p.brand.value=brands.includes(selectedBrand)?selectedBrand:'';
+}
+function fillModels(p, selectedModel){
+ if(!p.brand.value){
+  p.model.innerHTML='<option value="">Сначала выберите марку</option>';
+  p.model.disabled=true;
+  return;
+ }
+ const models=[...new Set(cars.filter(c=>c.brand===p.brand.value).map(modelName))];
+ p.model.disabled=false;
+ p.model.innerHTML='<option value="">Модель</option>'+models.map(m=>`<option value="${m}">${m}</option>`).join('');
+ p.model.value=models.includes(selectedModel)?selectedModel:'';
+}
+function fillTrims(p, selectedId){
+ if(!p.brand.value||!p.model.value){
+  p.trim.innerHTML='<option value="">Сначала выберите модель</option>';
+  p.trim.disabled=true;
+  return;
+ }
+ const list=cars.filter(c=>c.brand===p.brand.value&&modelName(c)===p.model.value);
+ p.trim.disabled=false;
+ p.trim.innerHTML='<option value="">Выберите версию</option>'+list.map(c=>`<option value="${c.id}">${trimName(c)}</option>`).join('');
+ p.trim.value=list.some(c=>c.id===selectedId)?selectedId:'';
+}
+function updatePickerUI(p,index){
+ const box=p.brand.closest('.picker');
+ const steps=[...box.querySelectorAll('.step')];
+ const stage=!p.brand.value?0:!p.model.value?1:!p.trim.value?2:3;
+ steps.forEach((s,i)=>{s.classList.remove('active','done'); if(i<stage)s.classList.add('done'); else if(i===stage&&stage<3)s.classList.add('active'); else if(stage===3)s.classList.add('done')});
+ const c=get(p.trim.value), summary=$('summary'+index);
+ if(c) summary.innerHTML=`<b>Выбрано:</b> ${c.brand} ${modelName(c)} · ${trimName(c)}`;
+ else if(p.brand.value&&p.model.value) summary.textContent='Теперь выберите конкретное поколение или комплектацию.';
+ else if(p.brand.value) summary.textContent='Марка выбрана. Теперь выберите модель.';
+ else summary.textContent='Начните с выбора марки автомобиля.';
+}
+function setPicker(p,id,index){
+ const c=get(id)||cars[0];
+ fillBrands(p,c.brand);
+ fillModels(p,modelName(c));
+ fillTrims(p,c.id);
+ updatePickerUI(p,index);
+}
+function selectedId(p){return p.trim.value}
+function cur(){return[get(selectedId(pickers[0])),get(selectedId(pickers[1]))]}
+function label(c){return `${c.brand} ${modelName(c)} — ${trimName(c)}`}
+
+pickers.forEach((p,index)=>{
+ const n=index+1;
+ p.brand.addEventListener('change',()=>{fillModels(p);fillTrims(p);updatePickerUI(p,n);render()});
+ p.model.addEventListener('change',()=>{fillTrims(p);updatePickerUI(p,n);render()});
+ p.trim.addEventListener('change',()=>{updatePickerUI(p,n);render()});
+});
+function carMarkup(c,i,max){
+ const col=i?['#ffb084','#ad5735']:['#8fbaff','#3d669d']; const w=Math.max(45,Math.min(96,c.length/max*96));
+ return `<div class="car-row"><div class="car-title"><strong>${c.brand} ${c.name}</strong><span>${fmt(c.length)} × ${fmt(c.width)} × ${fmt(c.height)} мм</span></div><div class="car-stage"><div class="car ${c.shape}" style="width:${w}%;--c1:${col[0]};--c2:${col[1]}"><div class="cabin"></div><div class="body"></div><div class="wheel left"></div><div class="wheel right"></div></div><div class="ground"></div><div class="scaleMarks"></div></div></div>`;
+}
+function diffCard(a,b,k,n){
+ const d=Math.abs(a[k]-b[k]), who=a[k]===b[k]?'Без разницы':a[k]>b[k]?`${a.brand} ${a.name}`:`${b.brand} ${b.name}`, pct=d?((d/Math.min(a[k],b[k]))*100).toFixed(1):0;
+ return `<div class="diff"><div class="name">${n}</div><div class="num">${fmt(d)} мм</div><div class="who">${d?'Больше: '+who:who}</div><div class="pct">${pct}% разницы</div></div>`;
+}
+function renderBars(a,b){
+ const rows=[['length','Длина'],['width','Ширина'],['height','Высота'],['wheelbase','Колёсная база'],['trunk','Багажник']];
+ const max={}; rows.forEach(([k])=>max[k]=Math.max(a[k],b[k]));
+ $('bars').innerHTML=rows.map(([k,n])=>`<div class="barrow"><div class="barname">${n}</div><div class="bartrack"><div class="barfill" style="width:${a[k]/max[k]*100}%;background:var(--blue)"></div></div><div class="barvalue">${fmt(a[k])}</div><div></div><div class="bartrack"><div class="barfill" style="width:${b[k]/max[k]*100}%;background:var(--orange)"></div></div><div class="barvalue">${fmt(b[k])}</div></div>`).join('');
+}
+function updateURL(a,b){const u=new URL(location.href);u.searchParams.set('car1',a.id);u.searchParams.set('car2',b.id);history.replaceState(null,'',u)}
+function render(){
+ const [a,b]=cur(); if(!a||!b)return; const max=Math.max(a.length,b.length);
+ $('visual').innerHTML=carMarkup(a,0,max)+carMarkup(b,1,max);
+ $('diffs').innerHTML=[['length','Длина'],['width','Ширина'],['height','Высота'],['wheelbase','Колёсная база']].map(x=>diffCard(a,b,...x)).join('');
+ renderBars(a,b);
+ $('specTable').innerHTML=`<thead><tr><th>Характеристика</th><th>${a.brand} ${a.name}</th><th>${b.brand} ${b.name}</th></tr></thead><tbody>`+specs.map(([k,n,u,num])=>{
+  let ca='',cb=''; if(num){if(a[k]>b[k])ca='winner';else if(b[k]>a[k])cb='winner';else ca=cb='equal'}
+  const va=(num?fmt(a[k]):a[k])+(u?' '+u:''),vb=(num?fmt(b[k]):b[k])+(u?' '+u:'');
+  return `<tr><td>${n}</td><td class="${ca}">${va}</td><td class="${cb}">${vb}</td></tr>`;
+ }).join('')+'</tbody>';
+ $('selectedInfo').innerHTML=[a,b].map(c=>`<div class="car-info"><h3>${c.brand} ${c.name}</h3><p><b>Поколение:</b> ${c.gen}<br><b>Кузов:</b> ${c.body}<br><b>Двигатель:</b> ${c.engine}<br><b>Привод:</b> ${c.drive}<br><b>Масса:</b> ${fmt(c.weight)} кг</p></div>`).join('');
+ updateURL(a,b); localStorage.setItem('autoscale-last',JSON.stringify({car1:a.id,car2:b.id})); renderRecent();
+}
+function renderRecent(){
+ const box=$('recent'),data=JSON.parse(localStorage.getItem('autoscale-recent')||'[]');
+ const id1=selectedId(pickers[0]),id2=selectedId(pickers[1]);
+ const now=[id1,id2,...data.filter(x=>x!==id1&&x!==id2)].slice(0,6); localStorage.setItem('autoscale-recent',JSON.stringify(now));
+ box.innerHTML='<span>Недавние:</span>'+now.map(id=>{const c=get(id);return c?`<button class="chip" data-id="${id}">${c.brand} ${c.name}</button>`:''}).join('');
+}
+function init(){
+ const p=new URLSearchParams(location.search),saved=JSON.parse(localStorage.getItem('autoscale-last')||'null');
+ const id1=get(p.get('car1'))?p.get('car1'):(get(saved?.car1)?.id||'vezel-ru1');
+ const id2=get(p.get('car2'))?p.get('car2'):(get(saved?.car2)?.id||'tiguan');
+ setPicker(pickers[0],id1,1); setPicker(pickers[1],id2,2); render();
+}
+init();
+$('swap').onclick=()=>{
+ const a=selectedId(pickers[0]),b=selectedId(pickers[1]);
+ setPicker(pickers[0],b,1);setPicker(pickers[1],a,2);render();
+};
+$('random').onclick=()=>{
+ let i=Math.floor(Math.random()*cars.length),j=Math.floor(Math.random()*cars.length);
+ while(j===i)j=Math.floor(Math.random()*cars.length);
+ setPicker(pickers[0],cars[i].id,1);setPicker(pickers[1],cars[j].id,2);render();
+};
+search.addEventListener('input',()=>{const q=search.value.trim().toLowerCase();if(!q){results.classList.remove('show');return}const found=cars.filter(c=>label(c).toLowerCase().includes(q)).slice(0,10);results.innerHTML=found.length?found.map(c=>`<div class="result" data-id="${c.id}"><b>${c.brand} ${c.name}</b><br><small>${c.gen} · ${c.body}</small></div>`).join(''):'<div class="result">Ничего не найдено</div>';results.classList.add('show')});
+results.onclick=e=>{const r=e.target.closest('[data-id]');if(!r)return;setPicker(pickers[0],r.dataset.id,1);search.value='';results.classList.remove('show');render()};
+$('recent').onclick=e=>{const r=e.target.closest('[data-id]');if(r){setPicker(pickers[0],r.dataset.id,1);render()}};
+document.addEventListener('click',e=>{if(!e.target.closest('.quick'))results.classList.remove('show')});
+$('copyLink').onclick=async()=>{try{await navigator.clipboard.writeText(location.href);$('status').textContent='Ссылка скопирована';setTimeout(()=>$('status').textContent='',2500)}catch{$('status').textContent='Не удалось скопировать ссылку'}};
+$('nativeShare').onclick=async()=>{const[a,b]=cur(),data={title:'AutoScale',text:`Сравнение ${a.brand} ${a.name} и ${b.brand} ${b.name}`,url:location.href};if(navigator.share){try{await navigator.share(data)}catch(e){}}else $('copyLink').click()};
+</script>
+</body>
+</html>

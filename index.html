@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoScale v4.1 — Data Binding Fix</title>
+<style>
+:root{
+  --bg:#07111f; --bg2:#0b1727; --card:#101d2d; --card2:#0d1927;
+  --line:#29445f; --text:#e8eef7; --muted:#aab8ca;
+  --blue:#78a9df; --blue2:#294b70; --orange:#ff9b6e; --green:#8fd0a7;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;color:var(--text);
+background:radial-gradient(circle at top right,#163253 0,transparent 28%),linear-gradient(180deg,var(--bg2),var(--bg));}
+button,select,input{font:inherit}
+.container{width:min(1100px,calc(100% - 24px));margin:auto}
+header{padding:26px 0 18px;border-bottom:1px solid var(--line)}
+.logo{font-size:28px;font-weight:850;letter-spacing:-.7px}.logo b{color:var(--blue)}
+.subtitle{margin-top:5px;color:var(--muted);font-size:14px}
+main{padding:18px 0 50px}
+.panel{background:linear-gradient(145deg,rgba(20,34,50,.98),rgba(11,24,38,.98));border:1px solid var(--line);
+border-radius:24px;padding:24px;margin-bottom:16px;box-shadow:0 16px 45px rgba(0,0,0,.13)}
+h1,h2,h3,p{margin-top:0}h1{font-size:36px;letter-spacing:-.8px;margin-bottom:8px}
+h2{font-size:27px;letter-spacing:-.4px;margin-bottom:8px}.lead{color:var(--muted);font-size:18px;line-height:1.55}
+.top-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.random{width:100%;border:1px solid #47709a;background:#1d334b;color:var(--text);border-radius:16px;padding:15px;font-weight:750;cursor:pointer}
+.info{border:1px solid rgba(74,128,126,.65);background:rgba(15,48,49,.55);color:#c6e0d4;padding:16px;border-radius:18px;line-height:1.5}
+.search{width:100%;background:#0b1827;border:1px solid #385976;color:var(--text);border-radius:16px;padding:17px 18px;margin:12px 0 16px;outline:none}
+.search:focus{border-color:#6f9fd0;box-shadow:0 0 0 3px rgba(120,169,223,.12)}
+.target-tabs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tab,.swap{border:1px solid #385976;background:#0d1b2a;color:var(--muted);border-radius:14px;padding:13px;cursor:pointer;font-weight:700}
+.tab.active{background:#213b57;color:white;border-color:#5e91c2}
+.selectors{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.field label{display:block;color:var(--muted);font-size:13px;margin:0 0 6px 3px}
+.field select{width:100%;background:#0b1827;border:1px solid #385976;color:var(--text);border-radius:13px;padding:14px 12px;min-height:52px}
+.selected-summary{margin-top:14px;padding:15px 17px;background:#0b1827;border:1px solid #29445f;border-radius:16px;color:var(--muted)}
+.selected-summary strong{color:var(--text)}
+.action-row{display:flex;gap:10px;align-items:center;justify-content:center;margin-top:14px}
+.swap{min-width:260px;background:#213b57;color:#fff;border-color:#5485b5}
+.compare{border:1px solid #6b9bc8;background:linear-gradient(135deg,#315a80,#203b57);color:white;border-radius:15px;padding:14px 22px;font-weight:800;cursor:pointer}
+.hidden{display:none!important}
+.empty{text-align:center;color:var(--muted);padding:25px}
+.car-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.car-card{background:#0b1827;border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.car-head{padding:18px 20px;border-bottom:1px solid var(--line)}
+.car-head h3{font-size:25px;margin-bottom:4px}.car-meta{color:var(--muted);line-height:1.45}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;background:var(--blue)}
+.orange{background:var(--orange)}
+.car-visual{height:235px;position:relative;overflow:hidden;background:linear-gradient(#7fa5c4 0 58%,#a0a0a0 58% 59%,#59616a 59% 100%)}
+.car-shape{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);width:74%;height:78px;background:linear-gradient(180deg,#d9e5ef,#7892aa);border-radius:36px 48px 22px 22px;border:2px solid rgba(255,255,255,.55)}
+.car-shape:before{content:"";position:absolute;width:43%;height:46px;left:28%;top:-37px;border-radius:42px 42px 8px 8px;background:#1d3345;border:2px solid #b6c9da}
+.car-shape:after{content:"";position:absolute;left:11%;right:11%;bottom:-18px;height:32px;background:radial-gradient(circle at 14% 50%,#1a2734 0 11px,#b8c8d6 12px 18px,transparent 19px),radial-gradient(circle at 86% 50%,#1a2734 0 11px,#b8c8d6 12px 18px,transparent 19px)}
+.orange-car{background:linear-gradient(180deg,#ffc29e,#d86b43)}
+.dims{position:absolute;left:16px;right:16px;bottom:8px;display:flex;justify-content:space-between;font-size:13px;font-weight:800;text-shadow:0 1px 2px #000}
+.visual-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.combined{min-height:270px;background:linear-gradient(#7fa5c4 0 58%,#9e9e9e 58% 59%,#59616a 59%);position:relative;border-radius:18px;overflow:hidden}
+.mini{position:absolute;bottom:55px;width:39%;height:58px;border-radius:30px 36px 18px 18px}
+.mini:before{content:"";position:absolute;width:42%;height:34px;left:29%;top:-28px;border-radius:32px 32px 7px 7px;background:#263849;border:1px solid #b6c9da}
+.mini.blue{left:7%;background:#9ab5d0}.mini.orange{right:7%;background:#f19a72}.mini:after{content:"";position:absolute;left:10%;right:10%;bottom:-14px;height:26px;background:radial-gradient(circle at 14% 50%,#172330 0 8px,#c0cbd5 9px 13px,transparent 14px),radial-gradient(circle at 86% 50%,#172330 0 8px,#c0cbd5 9px 13px,transparent 14px)}
+.verdict{margin-top:12px;padding:15px 17px;border:1px solid rgba(63,137,99,.7);background:rgba(14,53,43,.6);border-radius:15px;color:#d3e9dc}
+.diff-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.diff{background:#0b1827;border:1px solid #29445f;border-radius:16px;padding:15px}.diff span{display:block;color:var(--muted);font-size:13px}.diff b{display:block;font-size:22px;margin:6px 0}.diff small{color:#91b8d9}
+.barline{display:grid;grid-template-columns:130px 1fr 1fr;gap:10px;align-items:center;margin:11px 0}.track{height:10px;background:#07111f;border-radius:99px;overflow:hidden}.bar{height:100%;border-radius:99px;background:var(--blue)}.bar.b{background:var(--orange)}
+table{width:100%;border-collapse:collapse;background:#0b1827;border:1px solid #29445f;border-radius:16px;overflow:hidden}th,td{padding:14px 16px;border-bottom:1px solid #243b52;text-align:left}th{color:var(--muted);font-size:13px;background:#0d1b2a}td:nth-child(2),td:nth-child(3){font-weight:750}tr:last-child td{border-bottom:0}
+footer{text-align:center;color:#6e8194;font-size:13px;padding:20px}
+@media(max-width:800px){
+ h1{font-size:31px}.top-grid,.car-grid,.visual-grid{grid-template-columns:1fr}.selectors{grid-template-columns:1fr 1fr}.diff-grid{grid-template-columns:1fr 1fr}.panel{padding:18px;border-radius:20px}
+ .car-visual{height:210px}.barline{grid-template-columns:90px 1fr 1fr;font-size:12px}th,td{padding:11px 8px;font-size:12px}
+}
+@media(max-width:480px){.selectors{grid-template-columns:1fr}.action-row{flex-direction:column}.swap,.compare{width:100%}.container{width:min(100% - 14px,1100px)}.panel{padding:14px}.car-head h3{font-size:21px}}
+</style>
+</head>
+<body>
+<header><div class="container">
+  <div class="logo">Auto<b>Scale</b></div>
+  <div class="subtitle">Сравнение реальных габаритов автомобилей в одном масштабе</div>
+</div></header>
+
+<main class="container">
+  <section class="panel">
+    <div class="top-grid">
+      <div>
+        <h1>Сравнить автомобили</h1>
+        <p class="lead">Все блоки сайта теперь получают данные из одного источника: выбранного автомобиля.</p>
+      </div>
+      <div><button class="random" id="randomBtn">🎲 Случайное сравнение</button></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Автомобили для сравнения</h2>
+    <p class="lead">Выберите сторону, затем автомобиль. После применения обновляются все блоки сравнения.</p>
+    <input class="search" id="search" placeholder="⌕ Поиск: Vezel, Tiguan, Levorg, RAV4...">
+
+    <div class="target-tabs">
+      <button class="tab active" data-target="1">Первый автомобиль</button>
+      <button class="tab" data-target="2">Второй автомобиль</button>
+    </div>
+
+    <div class="selectors">
+      <div class="field"><label>Марка</label><select id="brand"></select></div>
+      <div class="field"><label>Модель</label><select id="model"></select></div>
+      <div class="field"><label>Поколение</label><select id="generation"></select></div>
+      <div class="field"><label>Комплектация</label><select id="version"></select></div>
+    </div>
+
+    <div class="selected-summary" id="selectedSummary">Выберите автомобиль.</div>
+    <div class="action-row">
+      <button class="compare" id="applyBtn">Добавить в сравнение</button>
+      <button class="swap" id="swapBtn">⇄ Поменять местами</button>
+    </div>
+  </section>
+
+  <section class="panel" id="comparison">
+    <h2>Визуальное сравнение</h2>
+    <p class="lead">Реальные пропорции рассчитываются по заводским размерам из базы.</p>
+    <div class="car-grid" id="carCards"></div>
+    <div class="panel" style="margin-top:16px;margin-bottom:0;padding:16px">
+      <h3 style="font-size:21px">Обе машины в одном масштабе</h3>
+      <div class="combined" id="combined"></div>
+      <div class="verdict" id="verdict">Выберите два автомобиля.</div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Разница габаритов</h2>
+    <div class="diff-grid" id="diffGrid"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Наглядная разница</h2>
+    <div id="bars"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Полное сравнение характеристик</h2>
+    <div style="overflow:auto"><table id="specTable"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>О выбранных автомобилях</h2>
+    <div class="car-grid" id="about"></div>
+  </section>
+</main>
+<footer>AutoScale v4.1 · единый движок данных автомобилей</footer>
+
+<script src="database.js"></script>
+<script>
+(() => {
+  const db = typeof CAR_DATABASE !== 'undefined' ? CAR_DATABASE : [];
+  if (!db.length) {
+    document.body.innerHTML = '<div style="padding:30px;color:white;font-family:Arial">Ошибка: файл database.js не найден или база пуста.</div>';
+    return;
+  }
+
+  const $ = id => document.getElementById(id);
+  const labels = {
+    length:'Длина', width:'Ширина', height:'Высота', wheelbase:'Колёсная база',
+    clearance:'Клиренс', mass:'Масса', trunk:'Багажник', power:'Мощность',
+    engine:'Двигатель', drive:'Привод', fuel:'Расход'
+  };
+  const units = {length:'мм',width:'мм',height:'мм',wheelbase:'мм',clearance:'мм',mass:'кг',trunk:'л',power:'л.с.',fuel:'л/100 км'};
+
+  // ЕДИНСТВЕННЫЙ ИСТОЧНИК ИСТИНЫ: каждый автомобиль нормализуется один раз.
+  const allCars = db.flatMap(brand =>
+    brand.models.flatMap(model =>
+      model.generations.flatMap(generation =>
+        generation.versions.map(version => ({
+          ...version,
+          brand: brand.name,
+          brandId: brand.id,
+          country: brand.country,
+          model: model.name,
+          modelId: model.id,
+          body: model.bodyType,
+          generation: generation.name,
+          generationId: generation.id,
+          generationCode: generation.code,
+          years: generation.years,
+          fullName: `${brand.name} ${model.name}`,
+          trim: `${generation.code} · ${version.name} · ${version.power} л.с.`
+        }))
+      )
+    )
+  );
+
+  const state = {
+    target: 1,
+    selections: {
+      1: allCars.find(c => c.id === 'honda-vezel-ru1') || allCars[0] || null,
+      2: allCars.find(c => c.id === 'toyota-chr-ngx10') || allCars[1] || null
+    }
+  };
+
+  const option = (value,text) => `<option value="${value}">${text}</option>`;
+  const byId = id => allCars.find(c => c.id === id) || null;
+
+  function currentBrand(){ return db.find(x => x.id === $('brand').value) || db[0]; }
+  function currentModel(){ return currentBrand().models.find(x => x.id === $('model').value) || currentBrand().models[0]; }
+  function currentGeneration(){ return currentModel().generations.find(x => x.id === $('generation').value) || currentModel().generations[0]; }
+
+  function loadBrands(){
+    $('brand').innerHTML = db.map(b => option(b.id,b.name)).join('');
+    loadModels();
+  }
+  function loadModels(){
+    const b=currentBrand();
+    $('model').innerHTML=b.models.map(m=>option(m.id,m.name)).join('');
+    loadGenerations();
+  }
+  function loadGenerations(){
+    const m=currentModel();
+    $('generation').innerHTML=m.generations.map(g=>option(g.id,`${g.name} · ${g.code} · ${g.years}`)).join('');
+    loadVersions();
+  }
+  function loadVersions(){
+    const g=currentGeneration();
+    $('version').innerHTML=g.versions.map(v=>option(v.id,`${v.name} · ${v.power} л.с.`)).join('');
+    updateSummary();
+  }
+
+  function selectedFromControls(){
+    return byId($('version').value);
+  }
+
+  function updateSummary(){
+    const c=selectedFromControls();
+    const activeName = state.target===1 ? 'Первый автомобиль' : 'Второй автомобиль';
+    $('selectedSummary').innerHTML = c
+      ? `<strong>${activeName}:</strong> ${c.fullName} · ${c.generationCode} · ${c.name} · ${c.power} л.с.`
+      : 'Выберите автомобиль.';
+  }
+
+  function syncControls(c){
+    if(!c) return;
+    $('brand').value=c.brandId;
+    loadModels();
+    $('model').value=c.modelId;
+    loadGenerations();
+    $('generation').value=c.generationId;
+    loadVersions();
+    $('version').value=c.id;
+    updateSummary();
+  }
+
+  function setTarget(n){
+    state.target=n;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active',Number(t.dataset.target)===n));
+    syncControls(state.selections[n]);
+  }
+
+  function applySelection(){
+    const c=selectedFromControls();
+    if(!c) return;
+    state.selections[state.target]=c;
+    render();
+    updateSummary();
+  }
+
+  function searchCars(q){
+    q=q.trim().toLowerCase();
+    if(!q) return;
+    const found=allCars.find(c => [c.brand,c.model,c.generation,c.generationCode,c.name,c.engine].join(' ').toLowerCase().includes(q));
+    if(found){
+      syncControls(found);
+      state.selections[state.target]=found;
+      render();
+    }
+  }
+
+  function fmt(c,k){
+    if(c[k] === undefined || c[k] === null) return '—';
+    if(k==='engine'||k==='drive') return c[k];
+    return `${c[k]} ${units[k]||''}`.trim();
+  }
+
+  function carShapeStyle(c, n){
+    const maxL = Math.max(...allCars.map(x=>x.length));
+    const maxH = Math.max(...allCars.map(x=>x.height));
+    const width = Math.max(48, Math.min(88, (c.length/maxL)*82));
+    const height = Math.max(60, Math.min(108, (c.height/maxH)*100));
+    return `width:${width}%;height:${height}px`;
+  }
+
+  function carCard(c,n){
+    const orange=n===2?' orange-car':'';
+    return `<article class="car-card">
+      <div class="car-head"><h3><span class="dot ${n===2?'orange':''}"></span>${c.fullName}</h3>
+      <div class="car-meta">${c.generation} · ${c.generationCode} · ${c.years}<br>${c.name} · ${c.power} л.с.</div></div>
+      <div class="car-visual"><div class="car-shape${orange}" style="${carShapeStyle(c,n)}"></div>
+      <div class="dims"><span>${c.height} мм</span><span>${c.wheelbase} мм</span><span>${c.length} мм</span></div></div>
+    </article>`;
+  }
+
+  function aboutCard(c){
+    return `<div class="car-card"><div class="car-head"><h3>${c.fullName}</h3>
+      <div class="car-meta">Кузов: ${c.body}<br>Страна: ${c.country}<br>Поколение: ${c.generation} (${c.generationCode})<br>Версия: ${c.name}<br>Двигатель: ${c.engine}<br>Привод: ${c.drive}</div></div></div>`;
+  }
+
+  function render(){
+    const a=state.selections[1], b=state.selections[2];
+
+    $('carCards').innerHTML=(a?carCard(a,1):'<div class="empty">Первый автомобиль ещё не выбран.</div>')+
+      (b?carCard(b,2):'<div class="empty">Второй автомобиль ещё не выбран.</div>');
+    $('about').innerHTML=(a?aboutCard(a):'<div class="empty">Нет данных</div>')+
+      (b?aboutCard(b):'<div class="empty">Нет данных</div>');
+
+    if(!(a&&b)){
+      $('diffGrid').innerHTML=''; $('bars').innerHTML=''; $('specTable').innerHTML=''; $('combined').innerHTML='';
+      $('verdict').textContent='Выберите два автомобиля.';
+      return;
+    }
+
+    const keys=['length','width','height','wheelbase'];
+    $('diffGrid').innerHTML=keys.map(k=>{
+      const d=Math.abs(a[k]-b[k]);
+      const winner=a[k]===b[k]?'Одинаково':(a[k]>b[k]?a.fullName:b.fullName);
+      return `<div class="diff"><span>${labels[k]}</span><b>${d} мм</b><small>${winner==='Одинаково'?winner:`Больше: ${winner}`}</small></div>`;
+    }).join('');
+
+    $('bars').innerHTML=keys.map(k=>{
+      const max=Math.max(a[k],b[k]);
+      const pa=(a[k]/max*100).toFixed(1), pb=(b[k]/max*100).toFixed(1);
+      return `<div class="barline"><b>${labels[k]}</b><div><div class="track"><div class="bar" style="width:${pa}%"></div></div><small>${a[k]} мм</small></div><div><div class="track"><div class="bar b" style="width:${pb}%"></div></div><small>${b[k]} мм</small></div></div>`;
+    }).join('');
+
+    const specKeys=['length','width','height','wheelbase','clearance','mass','trunk','power','engine','drive','fuel'];
+    $('specTable').innerHTML=`<thead><tr><th>Характеристика</th><th>${a.fullName}</th><th>${b.fullName}</th></tr></thead><tbody>${
+      specKeys.map(k=>`<tr><td>${labels[k]}</td><td>${fmt(a,k)}</td><td>${fmt(b,k)}</td></tr>`).join('')
+    }</tbody>`;
+
+    const maxL=Math.max(a.length,b.length);
+    const wa=Math.max(28,Math.round(a.length/maxL*44));
+    const wb=Math.max(28,Math.round(b.length/maxL*44));
+    const maxH=Math.max(a.height,b.height);
+    const ha=Math.max(48,Math.round(a.height/maxH*82));
+    const hb=Math.max(48,Math.round(b.height/maxH*82));
+    $('combined').innerHTML=`<div class="mini blue" style="width:${wa}%;height:${ha}px"></div><div class="mini orange" style="width:${wb}%;height:${hb}px"></div>`;
+
+    const longer=a.length===b.length?'автомобили одинаковой длины':(a.length>b.length?`${a.fullName} длиннее`:`${b.fullName} длиннее`);
+    const higher=a.height===b.height?'одинаковые по высоте':(a.height>b.height?`${a.fullName} выше`:`${b.fullName} выше`);
+    $('verdict').textContent=`✓ ${longer}, а по высоте ${higher}.`;
+  }
+
+  function randomCompare(){
+    if(allCars.length<2)return;
+    let i=Math.floor(Math.random()*allCars.length),j=Math.floor(Math.random()*allCars.length);
+    while(j===i) j=Math.floor(Math.random()*allCars.length);
+    state.selections[1]=allCars[i];
+    state.selections[2]=allCars[j];
+    setTarget(1);
+    render();
+  }
+
+  $('brand').addEventListener('change',loadModels);
+  $('model').addEventListener('change',loadGenerations);
+  $('generation').addEventListener('change',loadVersions);
+  $('version').addEventListener('change',updateSummary);
+  $('applyBtn').addEventListener('click',applySelection);
+  $('randomBtn').addEventListener('click',randomCompare);
+  $('swapBtn').addEventListener('click',()=>{
+    const t=state.selections[1];
+    state.selections[1]=state.selections[2];
+    state.selections[2]=t;
+    syncControls(state.selections[state.target]);
+    render();
+  });
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setTarget(Number(t.dataset.target))));
+  let timer;
+  $('search').addEventListener('input',e=>{clearTimeout(timer);timer=setTimeout(()=>searchCars(e.target.value),300);});
+
+  loadBrands();
+  setTarget(1);
+  render();
+})();
+</script>
+</body>
+</html>

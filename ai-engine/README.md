@@ -1,42 +1,25 @@
-# AutoScale AI Engine v0.3.0
+# AutoScale AI Engine v0.4.0
 
-Vehicle data, search and comparison backend for AutoScale.
+Backend API for the AutoScale vehicle comparison project.
 
-## New architecture
+## Run locally
 
-```text
-ai-engine/
-├── app/
-│   ├── __init__.py
-│   ├── database.py
-│   └── main.py
-├── data/
-│   └── cars.json
-├── config.py
-├── requirements.txt
-└── README.md
+```bash
+pip install -r requirements.txt
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
 ## API
 
-- `/` — engine information
+- `/` — engine status
 - `/health` — health check
 - `/cars` — all vehicles
-- `/cars/{car_id}` — vehicle by ID
-- `/search?q=vezel` — text search
-- `/search?make=Honda&year=2015` — structured search
-- `/makes` — all makes
+- `/cars/{id}` — vehicle by ID
+- `/makes` — available makes
 - `/models?make=Honda` — models by make
-- `/compare?car1_id=1&car2_id=2` — compare two vehicles
+- `/generations?make=Honda&model=Vezel` — generations
+- `/years?make=Honda&model=Vezel&generation=RU` — available years
+- `/search?q=Vezel` — text search
+- `/compare?car1_id=1&car2_id=2` — vehicle comparison
 
-## Local start
-
-```bash
-uvicorn app.main:app --reload
-```
-
-## Render start command
-
-```text
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
+Vehicle data is stored in `data/cars.json`.

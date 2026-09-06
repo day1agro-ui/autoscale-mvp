@@ -1,24 +1,19 @@
-# AutoScale AI Engine
+# AutoScale AI Engine v1.0
 
-AI backend for the AutoScale project.
+## Files
+- main.py — FastAPI API
+- config.py — engine configuration
+- database.py — vehicle database
+- requirements.txt — dependencies
 
-## v0.1 Foundation
-
-- FastAPI service
-- Health endpoint
-- Image upload endpoint
-- Image metadata extraction
-- OpenAPI documentation
-
-## Run locally
-
-```bash
+## Local launch
 pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
+uvicorn main:app --host 0.0.0.0 --port 8000
 
-Open:
-
-- `/` — service status
-- `/health` — health check
-- `/docs` — API documentation
+## API
+/health
+/cars
+/brands
+/models
+/cars/{car_id}
+/compare?car1_id=...&car2_id=...

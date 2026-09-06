@@ -1,1 +1,1 @@
-# AutoScale AI Engine application modules
+"""AutoScale AI Engine package."""

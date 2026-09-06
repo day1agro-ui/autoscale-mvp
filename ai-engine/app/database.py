@@ -1,283 +1,99 @@
 """
-AutoScale vehicle database.
-MVP structure: one record = one конкретная версия автомобиля.
-All dimensions are in millimeters.
+AutoScale vehicle database layer.
+Loads vehicle data from data/cars.json.
 """
 
-cars = [
-    {
-        "id": "honda-vezel-ru1-x-2015",
-        "make": "Honda",
-        "make_id": "honda",
-        "model": "Vezel",
-        "model_id": "vezel",
-        "generation": "RU1",
-        "generation_id": "ru1",
-        "generation_name": "1st Generation",
-        "years": "2013–2021",
-        "year": 2015,
-        "version": "X",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4295,
-        "width": 1770,
-        "height": 1605,
-        "wheelbase": 2610,
-        "clearance": 185,
-        "mass": 1190,
-        "trunk": 393,
-        "power": 131,
-        "engine": "1.5 бензин",
-        "drive": "FWD"
-    },
-    {
-        "id": "honda-vezel-ru1-z-2015",
-        "make": "Honda",
-        "make_id": "honda",
-        "model": "Vezel",
-        "model_id": "vezel",
-        "generation": "RU1",
-        "generation_id": "ru1",
-        "generation_name": "1st Generation",
-        "years": "2013–2021",
-        "year": 2015,
-        "version": "Z",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4295,
-        "width": 1770,
-        "height": 1605,
-        "wheelbase": 2610,
-        "clearance": 185,
-        "mass": 1200,
-        "trunk": 393,
-        "power": 131,
-        "engine": "1.5 бензин",
-        "drive": "FWD"
-    },
-    {
-        "id": "volkswagen-t-cross-c11-2021",
-        "make": "Volkswagen",
-        "make_id": "volkswagen",
-        "model": "T-Cross",
-        "model_id": "t-cross",
-        "generation": "C11",
-        "generation_id": "c11",
-        "generation_name": "1st Generation",
-        "years": "2019–2024",
-        "year": 2021,
-        "version": "TSI",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4110,
-        "width": 1760,
-        "height": 1584,
-        "wheelbase": 2551,
-        "clearance": 175,
-        "mass": 1270,
-        "trunk": 385,
-        "power": 116,
-        "engine": "1.0 TSI",
-        "drive": "FWD"
-    },
-    {
-        "id": "volkswagen-t-roc-a11-2020",
-        "make": "Volkswagen",
-        "make_id": "volkswagen",
-        "model": "T-Roc",
-        "model_id": "t-roc",
-        "generation": "A11",
-        "generation_id": "a11",
-        "generation_name": "1st Generation",
-        "years": "2017–2025",
-        "year": 2020,
-        "version": "TSI",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4234,
-        "width": 1819,
-        "height": 1573,
-        "wheelbase": 2603,
-        "clearance": 160,
-        "mass": 1320,
-        "trunk": 445,
-        "power": 150,
-        "engine": "1.5 TSI",
-        "drive": "FWD"
-    },
-    {
-        "id": "subaru-levorg-vm-2016",
-        "make": "Subaru",
-        "make_id": "subaru",
-        "model": "Levorg",
-        "model_id": "levorg",
-        "generation": "VM",
-        "generation_id": "vm",
-        "generation_name": "1st Generation",
-        "years": "2014–2020",
-        "year": 2016,
-        "version": "1.6 GT-S EyeSight",
-        "body_type": "Wagon",
-        "market": "Japan",
-        "length": 4690,
-        "width": 1780,
-        "height": 1490,
-        "wheelbase": 2650,
-        "clearance": 130,
-        "mass": 1530,
-        "trunk": 522,
-        "power": 170,
-        "engine": "1.6 Turbo",
-        "drive": "AWD"
-    },
-    {
-        "id": "toyota-chr-ngx10-2020",
-        "make": "Toyota",
-        "make_id": "toyota",
-        "model": "C-HR",
-        "model_id": "c-hr",
-        "generation": "NGX10",
-        "generation_id": "ngx10",
-        "generation_name": "1st Generation",
-        "years": "2016–2023",
-        "year": 2020,
-        "version": "G-T",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4385,
-        "width": 1795,
-        "height": 1550,
-        "wheelbase": 2640,
-        "clearance": 140,
-        "mass": 1410,
-        "trunk": 318,
-        "power": 116,
-        "engine": "1.2 Turbo",
-        "drive": "FWD"
-    },
-    {
-        "id": "toyota-yaris-cross-mxp10-2022",
-        "make": "Toyota",
-        "make_id": "toyota",
-        "model": "Yaris Cross",
-        "model_id": "yaris-cross",
-        "generation": "MXP10",
-        "generation_id": "mxp10",
-        "generation_name": "1st Generation",
-        "years": "2020–present",
-        "year": 2022,
-        "version": "Z",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4180,
-        "width": 1765,
-        "height": 1590,
-        "wheelbase": 2560,
-        "clearance": 170,
-        "mass": 1180,
-        "trunk": 390,
-        "power": 120,
-        "engine": "1.5 бензин",
-        "drive": "FWD"
-    },
-    {
-        "id": "honda-hrv-rv5-2022",
-        "make": "Honda",
-        "make_id": "honda",
-        "model": "HR-V",
-        "model_id": "hr-v",
-        "generation": "RV5",
-        "generation_id": "rv5",
-        "generation_name": "3rd Generation",
-        "years": "2021–present",
-        "year": 2022,
-        "version": "X",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4330,
-        "width": 1790,
-        "height": 1590,
-        "wheelbase": 2610,
-        "clearance": 195,
-        "mass": 1380,
-        "trunk": 304,
-        "power": 131,
-        "engine": "1.5 бензин",
-        "drive": "FWD"
-    },
-    {
-        "id": "volkswagen-tiguan-ad1-2021",
-        "make": "Volkswagen",
-        "make_id": "volkswagen",
-        "model": "Tiguan",
-        "model_id": "tiguan",
-        "generation": "AD1",
-        "generation_id": "ad1",
-        "generation_name": "2nd Generation",
-        "years": "2016–present",
-        "year": 2021,
-        "version": "TSI",
-        "body_type": "SUV",
-        "market": "Europe",
-        "length": 4509,
-        "width": 1839,
-        "height": 1675,
-        "wheelbase": 2677,
-        "clearance": 191,
-        "mass": 1540,
-        "trunk": 615,
-        "power": 150,
-        "engine": "1.4 TSI",
-        "drive": "FWD"
-    },
-    {
-        "id": "mazda-cx5-kf-2021",
-        "make": "Mazda",
-        "make_id": "mazda",
-        "model": "CX-5",
-        "model_id": "cx-5",
-        "generation": "KF",
-        "generation_id": "kf",
-        "generation_name": "2nd Generation",
-        "years": "2017–present",
-        "year": 2021,
-        "version": "25S",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4575,
-        "width": 1845,
-        "height": 1690,
-        "wheelbase": 2700,
-        "clearance": 210,
-        "mass": 1550,
-        "trunk": 522,
-        "power": 190,
-        "engine": "2.5 бензин",
-        "drive": "AWD"
-    },
-    {
-        "id": "toyota-rav4-xa50-2021",
-        "make": "Toyota",
-        "make_id": "toyota",
-        "model": "RAV4",
-        "model_id": "rav4",
-        "generation": "XA50",
-        "generation_id": "xa50",
-        "generation_name": "5th Generation",
-        "years": "2018–present",
-        "year": 2021,
-        "version": "Adventure",
-        "body_type": "SUV",
-        "market": "Japan",
-        "length": 4610,
-        "width": 1865,
-        "height": 1690,
-        "wheelbase": 2690,
-        "clearance": 200,
-        "mass": 1640,
-        "trunk": 580,
-        "power": 199,
-        "engine": "2.5 бензин",
-        "drive": "AWD"
-    }
-]
+import json
+from pathlib import Path
+from typing import Optional
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_FILE = BASE_DIR / "data" / "cars.json"
+
+
+def load_cars() -> list[dict]:
+    """Load all vehicles from the JSON database."""
+    if not DATA_FILE.exists():
+        return []
+
+    with DATA_FILE.open("r", encoding="utf-8") as file:
+        data = json.load(file)
+
+    return data
+
+
+def get_car_by_id(car_id: int) -> Optional[dict]:
+    """Return one vehicle by ID."""
+    return next((car for car in load_cars() if car["id"] == car_id), None)
+
+
+def search_cars(
+    q: Optional[str] = None,
+    make: Optional[str] = None,
+    model: Optional[str] = None,
+    year: Optional[int] = None,
+    generation: Optional[str] = None,
+    market: Optional[str] = None,
+) -> list[dict]:
+    """
+    Search vehicles using text and structured filters.
+    All supplied filters are combined.
+    """
+    cars = load_cars()
+
+    if q:
+        query = q.lower().strip()
+
+        def matches_query(car: dict) -> bool:
+            haystack = " ".join(
+                str(car.get(field, ""))
+                for field in [
+                    "make",
+                    "model",
+                    "generation",
+                    "year",
+                    "market",
+                    "body_type",
+                ]
+            ).lower()
+            return query in haystack
+
+        cars = [car for car in cars if matches_query(car)]
+
+    if make:
+        cars = [car for car in cars if car["make"].lower() == make.lower()]
+
+    if model:
+        cars = [car for car in cars if car["model"].lower() == model.lower()]
+
+    if year is not None:
+        cars = [car for car in cars if car["year"] == year]
+
+    if generation:
+        cars = [
+            car for car in cars
+            if car["generation"].lower() == generation.lower()
+        ]
+
+    if market:
+        cars = [
+            car for car in cars
+            if car.get("market", "").lower() == market.lower()
+        ]
+
+    return cars
+
+
+def get_makes() -> list[str]:
+    """Return sorted unique vehicle makes."""
+    return sorted({car["make"] for car in load_cars()})
+
+
+def get_models(make: Optional[str] = None) -> list[str]:
+    """Return sorted unique models, optionally filtered by make."""
+    cars = load_cars()
+
+    if make:
+        cars = [car for car in cars if car["make"].lower() == make.lower()]
+
+    return sorted({car["model"] for car in cars})

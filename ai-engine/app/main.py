@@ -1,11 +1,27 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
-from PIL import Image
-from io import BytesIO
+"""
+AutoScale AI Engine
+Main FastAPI application.
+"""
+
+from fastapi import FastAPI, UploadFile, File
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.vision import analyze_image
+
 
 app = FastAPI(
     title="AutoScale AI Engine",
     description="AI system for vehicle geometry analysis and realistic visualization.",
     version="0.1.0",
+)
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -28,29 +44,11 @@ def health_check():
 
 
 @app.post("/analyze-image")
-async def analyze_image(file: UploadFile = File(...)):
-    if not file.content_type or not file.content_type.startswith("image/"):
-        raise HTTPException(
-            status_code=400,
-            detail="Uploaded file must be an image.",
-        )
+async def analyze_vehicle_image(
+    file: UploadFile = File(...)
+):
+    """
+    Upload and perform the first-stage analysis of a vehicle image.
+    """
 
-    content = await file.read()
-
-    try:
-        image = Image.open(BytesIO(content))
-        width, height = image.size
-    except Exception as exc:
-        raise HTTPException(
-            status_code=400,
-            detail="Unable to read image.",
-        ) from exc
-
-    return {
-        "filename": file.filename,
-        "content_type": file.content_type,
-        "image_width": width,
-        "image_height": height,
-        "status": "received",
-        "next_stage": "vehicle detection",
-    }
+    return await analyze_image(file)

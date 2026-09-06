@@ -1,9 +1,21 @@
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+
+from config import APP_NAME, APP_VERSION, ALLOWED_ORIGINS
 
 app = FastAPI(
-    title="AutoScale AI Engine",
+    title=APP_NAME,
     description="Vehicle data and comparison engine for AutoScale",
-    version="0.2.0"
+    version=APP_VERSION
+)
+
+# Allow the AutoScale frontend to communicate with this API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # Temporary MVP vehicle database.
@@ -59,8 +71,8 @@ cars = [
 @app.get("/")
 def root():
     return {
-        "project": "AutoScale AI Engine",
-        "version": "0.2.0",
+        "project": APP_NAME,
+        "version": APP_VERSION,
         "status": "online",
         "message": "AutoScale AI Engine is running",
         "docs": "/docs"
@@ -72,11 +84,12 @@ def health():
     return {
         "status": "ok",
         "engine": "running",
-        "version": "0.2.0"
+        "version": APP_VERSION
     }
 
 
 @app.get("/cars")
+@app.get("/api/cars")
 def get_cars():
     return {
         "count": len(cars),
@@ -85,6 +98,7 @@ def get_cars():
 
 
 @app.get("/cars/{car_id}")
+@app.get("/api/cars/{car_id}")
 def get_car(car_id: int):
     car = next((item for item in cars if item["id"] == car_id), None)
 
@@ -98,6 +112,7 @@ def get_car(car_id: int):
 
 
 @app.get("/compare")
+@app.get("/api/compare")
 def compare_cars(car1_id: int, car2_id: int):
     car1 = next((item for item in cars if item["id"] == car1_id), None)
     car2 = next((item for item in cars if item["id"] == car2_id), None)
